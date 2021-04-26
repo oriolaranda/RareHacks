@@ -77,10 +77,10 @@ dic = {}
 types_melanomes = []
 for i in range(0, len(sinonims)):
     family = sinonims[i]
-    type = tipus[i].lower()
-    dic[type.lower()] = type.lower()
+    types = tipus[i].lower()
+    dic[types.lower()] = types.lower()
     for sin in family:
-        dic[sin.lower()] = type.lower()
+        dic[sin.lower()] = types.lower()
         types_melanomes.append(sin.lower())
 
 
@@ -90,14 +90,9 @@ for i in range(0, len(sinonims)):
 def readCSV(name):
     global information_hospitals
     information_hospitals = []
-
-    print(name)
     index = names.index(str(name)) + 1
-    print(str(index))
     name_file = 'csv/drugs_labs_biobanks_dataset -' + str(index) + '.csv'
-    print('b')
     rows = pd.read_csv('Intraocular_melanoma.csv').values
-    print('a')
     for row in rows:
         name = row[4]
         telefon = row[5]
@@ -115,10 +110,11 @@ def readCSV(name):
 def answer(update, context):
     user_response = tr2english(update.message.text, context.user_data).lower()
     words = word_tokenize(user_response)
-    if user_response == 'bye' or user_response == 'Bye':
+
+    if user_response.split()[0] == 'bye':
         update.message.reply_text(tr2other("Goodbye!!", context.user_data['language']))
 
-    elif user_response == 'thanks' or user_response == 'thank you':
+    elif user_response.split()[0] == 'thanks' or user_response.split() == ['thank','you']:
         update.message.reply_text(tr2other("You are very welcome", context.user_data['language']))
 
     elif greeting(user_response) is not None:  # when greetings appear
@@ -145,13 +141,11 @@ def answer(update, context):
 
         else:
             found = False
-            for type in types_melanomes:
-                if type in user_response:
+            for types in types_melanomes:
+                if types in user_response:
                     found = True
-                    context.user_data['type_disease'] = dic[type]
+                    context.user_data['type_disease'] = dic[types]
                     readCSV(context.user_data['type_disease'])
-                    print(found)
-
             if found:
                 update.message.reply_text(tr2other("Perfect", context.user_data['language']))
                 update.message.reply_text(tr2other(
@@ -170,9 +164,7 @@ def answer(update, context):
     else:
         words = treatInput(user_response)
         words = " ".join(words)
-        print(words)
         prediction = predictAnswer(words)
-        print(prediction)
 
         if words[0] == '$' or ('where' in words):
             update.message.reply_text(tr2other("Please send me your location, so I can give you the best option.",
@@ -223,7 +215,7 @@ def giveClosestHospital(update, context):
         lat = entry[3]
         lon = entry[4]
 
-        update.send_location(chat_id=update.message.chat_id, latitude=lat, longitude=lon)
+        context.bot.send_location(chat_id=update.message.chat_id, latitude=lat, longitude=lon)
 
         text = "This is the location of the nearest hospital in which your type of disease can be treated.\nThis hospital is called " + nom + " and its address is " + address + "\n" + "I would recommend you to contact it through the telefon " + telefon + " so you can book a meet with an specialist."
         update.message.reply_text(tr2other(text, context.user_data['language']))

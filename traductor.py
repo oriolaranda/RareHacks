@@ -6,7 +6,6 @@ def tr2english(text, user_data):
     msg_tr = translator.translate(text=text)
     if 'language' not in user_data:
         user_data['language'] = translator.detect(text)[0]
-        print(user_data['language'])
     return msg_tr
 
 
